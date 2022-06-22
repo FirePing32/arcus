@@ -1,0 +1,6 @@
+export const DARK = "#000c19"
+export const LIGHT = "#ffffff"
+export const DARK_TEXT = "#000000"
+export const LIGHT_TEXT = "#ffffff"
+export const DARK_WIDGET = "#001833"
+export const LIGHT_WIDGET = "#d3d3d3"

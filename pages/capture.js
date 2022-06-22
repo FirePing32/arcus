@@ -1,63 +1,65 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet ,Text, View, Button, Image} from 'react-native';
-import { useIsFocused } from '@react-navigation/native';
-import { Camera } from 'expo-camera';
+import React, { useState } from 'react';
+import { Pressable, Image, View, Text, StyleSheet, useColorScheme } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
+import * as Colors from '../components/colors'
 
-export default function CaptureScreen() {
-  const [hasCameraPermission, setHasCameraPermission] = useState(null);
-  const [camera, setCamera] = useState(null);
+export default function ImagePickerExample() {
   const [image, setImage] = useState(null);
-  const [type, setType] = useState(Camera.Constants.Type.back);
+  let colorScheme = useColorScheme()
 
-  const isFocused = useIsFocused();
+  const pickImage = async () => {
+    // No permissions request is necessary for launching the image library
+    let imageLibraryResult = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 0.8,
+    });
 
-  useEffect(() => {
-    (async () => {
-      const cameraStatus = await Camera.requestCameraPermissionsAsync();
-      setHasCameraPermission(cameraStatus.status === 'granted');})();
-  }, [hasCameraPermission]);
+    if (!imageLibraryResult.cancelled) {
+      setImage(imageLibraryResult.uri);
+    }
+  };
 
-  const takePicture = async () => {
-    if(camera){
-        const data = await camera.takePictureAsync(null)
-        setImage(data.uri);
+  const captureImage = async () => {
+    let captureResult = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 0.8,
+    })
+
+    if (!captureResult.cancelled) {
+      setImage(captureResult.uri);
     }
   }
-  if (hasCameraPermission === false) {
-    return <Text>No access to camera</Text>;
-  }
+
+  const styles = StyleSheet.create({
+    button: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 12,
+      paddingHorizontal: 32,
+      margin: 10,
+      borderRadius: 7,
+      backgroundColor: colorScheme == 'dark' ? Colors.DARK_WIDGET : Colors.LIGHT_WIDGET,
+    },
+    text: {
+      fontSize: 16,
+      lineHeight: 21,
+      fontWeight: 'bold',
+      letterSpacing: 0.25,
+      color: colorScheme == 'dark' ? Colors.LIGHT_TEXT : Colors.DARK_TEXT,
+    },
+  });
+
   return (
-   <View style={{ flex: 1}}>
-      <View style={styles.cameraContainer}>
-            { isFocused &&
-            <Camera
-            ref={ref => setCamera(ref)}
-            style={styles.fixedRatio}
-            type={type}
-            ratio={'1:1'} />
-            }
-      </View>
-      <Button
-            title="Flip Image"
-            onPress={() => {
-              setType(
-                type === Camera.Constants.Type.back
-                  ? Camera.Constants.Type.front
-                  : Camera.Constants.Type.back
-              );
-            }}>
-        </Button>
-       <Button title="Take Picture" onPress={() => takePicture()} />
-        {image && <Image source={{uri: image}} style={{flex:1}}/>}
-   </View>
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colorScheme == 'dark' ? Colors.DARK : Colors.LIGHT }}>
+      <Pressable style={styles.button} onPress={pickImage}>
+        <Text style={styles.text}>Choose from gallery</Text>
+      </Pressable>
+      <Pressable style={styles.button} onPress={captureImage}>
+        <Text style={styles.text}>Capture Image</Text>
+      </Pressable>
+        {image && <Image source={{ uri: image }} style={{ width: 200, height: 200, margin: 20 }} />}
+    </View>
   );
-}const styles = StyleSheet.create({
-  cameraContainer: {
-      flex: 1,
-      flexDirection: 'row'
-  },
-  fixedRatio:{
-      flex: 1,
-      aspectRatio: 1
-  }
-})
+}
